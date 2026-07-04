@@ -1,0 +1,6 @@
+0:00 - CyVix turns civic signals into decisions.
+0:18 - The real problem is not data collection. It is making fragmented signals useful fast.
+0:38 - Ask the platform a question and it answers with baseline context, reasoning, and action.
+0:60 - Under the hood, the workflow is traceable: BigQuery, Vertex AI, Cloud Run, Cloud Storage, Looker, and ADK.
+1:25 - CyVix gives city teams faster insight, clearer explanation, and a better next step.
+1:45 - This is what decision intelligence looks like when it is built like a real product.

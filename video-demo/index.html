@@ -1,0 +1,1117 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CyVix Demo Film</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg: #f6efe6;
+        --ink: #2a1214;
+        --blue: #2f6bff;
+        --yellow: #ffe38a;
+        --mint: #a7f3d0;
+        --coral: #ff8fa3;
+        --card: #fffaf3;
+        --shadow: 8px 8px 0 0 rgba(42, 18, 20, 1);
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        background:
+          radial-gradient(circle at 10% 10%, rgba(47, 107, 255, 0.12), transparent 24%),
+          radial-gradient(circle at 88% 12%, rgba(255, 143, 163, 0.13), transparent 20%),
+          radial-gradient(circle at 50% 92%, rgba(167, 243, 208, 0.16), transparent 24%),
+          var(--bg);
+      }
+
+      #cyvix-demo-video {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      .grain {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 1;
+        opacity: 0.08;
+        background-image:
+          linear-gradient(rgba(42, 18, 20, 0.14) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(42, 18, 20, 0.09) 1px, transparent 1px);
+        background-size: 22px 22px;
+        mix-blend-mode: multiply;
+      }
+
+      .scene {
+        position: absolute;
+        inset: 0;
+        padding: 72px 84px;
+        display: flex;
+        align-items: stretch;
+        justify-content: stretch;
+        overflow: hidden;
+      }
+
+      .scene-content {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: grid;
+        gap: 28px;
+        grid-template-columns: 1.05fr 0.95fr;
+        align-items: center;
+      }
+
+      .scene.single .scene-content {
+        grid-template-columns: 1fr;
+      }
+
+      .stack {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-self: flex-start;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 16px;
+        border: 3px solid var(--ink);
+        border-radius: 999px;
+        background: var(--yellow);
+        box-shadow: 6px 6px 0 0 var(--ink);
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        font-size: 14px;
+        font-weight: 900;
+      }
+
+      .eyebrow.blue {
+        background: var(--blue);
+        color: white;
+      }
+
+      .eyebrow.mint {
+        background: var(--mint);
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      .title {
+        font-size: 84px;
+        line-height: 0.92;
+        letter-spacing: -0.06em;
+        font-weight: 900;
+        max-width: 12.5ch;
+      }
+
+      .title.large {
+        font-size: 92px;
+      }
+
+      .copy {
+        max-width: 62ch;
+        font-size: 24px;
+        line-height: 1.45;
+        color: rgba(42, 18, 20, 0.78);
+      }
+
+      .caption {
+        padding: 16px 20px;
+        border: 3px solid var(--ink);
+        border-radius: 22px;
+        background: #fffdf8;
+        box-shadow: 7px 7px 0 0 var(--ink);
+        font-size: 19px;
+        line-height: 1.45;
+        color: rgba(42, 18, 20, 0.86);
+      }
+
+      .chip-row,
+      .metric-row,
+      .result-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .chip,
+      .metric,
+      .result {
+        border: 3px solid var(--ink);
+        border-radius: 18px;
+        box-shadow: 6px 6px 0 0 var(--ink);
+        background: white;
+      }
+
+      .chip {
+        padding: 12px 16px;
+        font-size: 14px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+      }
+
+      .metric {
+        min-width: 220px;
+        padding: 18px 18px 16px;
+      }
+
+      .metric .num {
+        font-family: "SF Mono", "Menlo", "Consolas", monospace;
+        font-size: 40px;
+        line-height: 1;
+        letter-spacing: -0.04em;
+        font-weight: 700;
+      }
+
+      .metric .label,
+      .result .label {
+        margin-top: 10px;
+        display: block;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        font-weight: 900;
+        opacity: 0.72;
+      }
+
+      .metric .sub {
+        margin-top: 8px;
+        font-size: 17px;
+        line-height: 1.35;
+        color: rgba(42, 18, 20, 0.74);
+      }
+
+      .panel {
+        border: 3px solid var(--ink);
+        border-radius: 34px;
+        background: var(--card);
+        box-shadow: 12px 12px 0 0 var(--ink);
+        overflow: hidden;
+      }
+
+      .panel-inner {
+        padding: 24px;
+      }
+
+      .browser {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+
+      .browser-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 16px 18px;
+        background: #fff4d5;
+        border-bottom: 3px solid var(--ink);
+      }
+
+      .dots {
+        display: flex;
+        gap: 8px;
+      }
+
+      .dot {
+        width: 13px;
+        height: 13px;
+        border-radius: 50%;
+        border: 2px solid var(--ink);
+      }
+
+      .dot.red { background: var(--coral); }
+      .dot.yellow { background: var(--yellow); }
+      .dot.green { background: var(--mint); }
+
+      .url {
+        flex: 1;
+        margin-left: 10px;
+        margin-right: 10px;
+        padding: 10px 14px;
+        border: 3px solid var(--ink);
+        border-radius: 999px;
+        background: white;
+        font-family: "SF Mono", "Menlo", "Consolas", monospace;
+        font-size: 15px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .browser-body {
+        padding: 20px;
+        display: grid;
+        gap: 18px;
+      }
+
+      .frame-row {
+        display: grid;
+        gap: 18px;
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .card {
+        padding: 18px;
+        border: 3px solid var(--ink);
+        border-radius: 24px;
+        background: white;
+        box-shadow: 8px 8px 0 0 var(--ink);
+      }
+
+      .card.blue {
+        background: var(--blue);
+        color: white;
+      }
+
+      .card.yellow {
+        background: var(--yellow);
+      }
+
+      .card.mint {
+        background: var(--mint);
+      }
+
+      .card.coral {
+        background: var(--coral);
+      }
+
+      .card h3 {
+        font-size: 30px;
+        line-height: 1;
+        letter-spacing: -0.05em;
+      }
+
+      .card p {
+        margin-top: 10px;
+        font-size: 17px;
+        line-height: 1.4;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 14px;
+        border: 3px solid var(--ink);
+        border-radius: 999px;
+        background: white;
+        box-shadow: 5px 5px 0 0 var(--ink);
+        font-size: 14px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+      }
+
+      .pill.blue { background: var(--blue); color: white; }
+      .pill.yellow { background: var(--yellow); }
+      .pill.mint { background: var(--mint); }
+      .pill.coral { background: var(--coral); }
+
+      .number {
+        font-family: "SF Mono", "Menlo", "Consolas", monospace;
+        font-size: 64px;
+        font-weight: 700;
+        line-height: 0.95;
+        letter-spacing: -0.06em;
+      }
+
+      .small {
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        font-weight: 900;
+        opacity: 0.76;
+      }
+
+      .source-grid,
+      .service-grid,
+      .impact-grid {
+        display: grid;
+        gap: 16px;
+      }
+
+      .source-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .service-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .impact-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .flow {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+
+      .flow-step {
+        padding: 14px 18px;
+        border: 3px solid var(--ink);
+        border-radius: 18px;
+        background: white;
+        box-shadow: 7px 7px 0 0 var(--ink);
+        font-size: 18px;
+        font-weight: 900;
+      }
+
+      .arrow {
+        font-size: 34px;
+        font-weight: 900;
+        line-height: 1;
+      }
+
+      .glass {
+        background: rgba(255, 255, 255, 0.84);
+      }
+
+      .live-badge {
+        position: absolute;
+        top: 20px;
+        right: 24px;
+        padding: 12px 16px;
+        border: 3px solid var(--ink);
+        border-radius: 999px;
+        background: var(--coral);
+        color: white;
+        box-shadow: 6px 6px 0 0 var(--ink);
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        font-size: 13px;
+        font-weight: 900;
+      }
+
+      .transition {
+        position: absolute;
+        inset: 0;
+        z-index: 40;
+        pointer-events: none;
+        overflow: hidden;
+      }
+
+      .transition .bar {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 40%;
+        border-left: 3px solid var(--ink);
+        border-right: 3px solid var(--ink);
+        box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+      }
+
+      .transition .bar.a { left: -46%; background: var(--blue); }
+      .transition .bar.b { left: -24%; background: var(--yellow); }
+      .transition .bar.c { left: -2%; background: var(--coral); }
+
+      .right-align {
+        justify-self: end;
+      }
+
+      .muted {
+        color: rgba(42, 18, 20, 0.7);
+      }
+
+      .app-shell {
+        min-height: 0;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+      }
+
+      .app-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 16px 18px;
+        background: #fff3ce;
+        border-bottom: 3px solid var(--ink);
+      }
+
+      .app-title {
+        font-size: 20px;
+        font-weight: 900;
+        letter-spacing: -0.03em;
+      }
+
+      .app-grid {
+        padding: 20px;
+        display: grid;
+        gap: 18px;
+        grid-template-columns: 1.05fr 0.95fr;
+        align-items: start;
+      }
+
+      .signal-list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .signal {
+        padding: 14px;
+        border: 3px solid var(--ink);
+        border-radius: 18px;
+        background: white;
+        box-shadow: 6px 6px 0 0 var(--ink);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .signal strong {
+        font-size: 17px;
+      }
+
+      .signal .meta {
+        font-family: "SF Mono", "Menlo", "Consolas", monospace;
+        font-size: 16px;
+      }
+
+      .score-ring {
+        width: 190px;
+        height: 190px;
+        border-radius: 50%;
+        border: 10px solid var(--ink);
+        background:
+          radial-gradient(circle at center, white 0 56%, transparent 56%),
+          conic-gradient(var(--blue) 0 84%, #efdfc5 84% 100%);
+        display: grid;
+        place-items: center;
+        box-shadow: 9px 9px 0 0 var(--ink);
+      }
+
+      .score-ring .value {
+        font-family: "SF Mono", "Menlo", "Consolas", monospace;
+        font-size: 50px;
+        font-weight: 700;
+        letter-spacing: -0.05em;
+      }
+
+      .stack-list {
+        display: grid;
+        gap: 14px;
+      }
+
+      .stack-item {
+        padding: 16px;
+        border: 3px solid var(--ink);
+        border-radius: 20px;
+        background: white;
+        box-shadow: 7px 7px 0 0 var(--ink);
+      }
+
+      .stack-item .label {
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        font-weight: 900;
+        opacity: 0.7;
+      }
+
+      .stack-item .body {
+        margin-top: 10px;
+        font-size: 17px;
+        line-height: 1.4;
+      }
+
+      .architecture {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: 1.05fr 0.95fr;
+      }
+
+      .flow-lane {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .lane-row {
+        padding: 14px 18px;
+        border: 3px solid var(--ink);
+        border-radius: 18px;
+        background: white;
+        box-shadow: 6px 6px 0 0 var(--ink);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+      }
+
+      .lane-row .n {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        border: 3px solid var(--ink);
+        display: grid;
+        place-items: center;
+        background: var(--mint);
+        font-weight: 900;
+      }
+
+      .lane-row .t {
+        font-size: 19px;
+        font-weight: 900;
+      }
+
+      .lane-row .s {
+        font-size: 16px;
+        line-height: 1.35;
+        color: rgba(42, 18, 20, 0.72);
+        text-align: right;
+        max-width: 26ch;
+      }
+
+      .service-grid .card h3 {
+        font-size: 24px;
+      }
+
+      .service-grid .card p {
+        font-size: 15px;
+      }
+
+      .closing {
+        display: grid;
+        grid-template-columns: 1.08fr 0.92fr;
+        gap: 22px;
+      }
+
+      .final-score {
+        display: grid;
+        gap: 14px;
+      }
+
+      .footer-url {
+        font-family: "SF Mono", "Menlo", "Consolas", monospace;
+        font-size: 17px;
+        word-break: break-all;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cyvix-demo-video" data-composition-id="cyvix-demo-video" data-start="0" data-width="1920" data-height="1080" data-duration="108">
+      <div class="grain"></div>
+
+      <section class="scene" id="scene-1" data-start="0" data-duration="22" data-track-index="0">
+        <div class="scene-content">
+          <div class="stack">
+            <div class="eyebrow" id="s1-eyebrow">Hackathon demo film</div>
+            <h1 class="title large" id="s1-title">CyVix turns civic signals into decisions.</h1>
+            <p class="copy" id="s1-copy">
+              A live civic decision intelligence platform for city teams, public service operators,
+              and communities that need to detect risk early, explain it clearly, and act faster.
+            </p>
+            <div class="chip-row" id="s1-chips">
+              <div class="chip">BigQuery</div>
+              <div class="chip">Vertex AI</div>
+              <div class="chip">Cloud Run</div>
+              <div class="chip">Looker</div>
+              <div class="chip">ADK</div>
+            </div>
+            <div class="metric-row" id="s1-metrics">
+              <div class="metric">
+                <div class="num">3 min</div>
+                <span class="label">from signal to action</span>
+                <div class="sub">The demo stays fast, readable, and judge-friendly.</div>
+              </div>
+              <div class="metric">
+                <div class="num">Live</div>
+                <span class="label">model route</span>
+                <div class="sub">Vertex AI backs the narrative layer in the deployed app.</div>
+              </div>
+              <div class="metric">
+                <div class="num">1</div>
+                <span class="label">decision loop</span>
+                <div class="sub">Observe, reason, retrieve, explain, and act.</div>
+              </div>
+            </div>
+            <div class="caption" id="s1-caption">
+              CyVix does not just show city data. It turns the data into a decision packet.
+            </div>
+          </div>
+
+          <div class="panel browser" id="s1-browser">
+            <div class="browser-top">
+              <div class="dots">
+                <span class="dot red"></span>
+                <span class="dot yellow"></span>
+                <span class="dot green"></span>
+              </div>
+              <div class="url">https://cyvix-895728166282.asia-south1.run.app</div>
+              <div class="pill blue">Live Cloud Run</div>
+            </div>
+            <div class="browser-body">
+              <div class="frame-row">
+                <div class="card blue">
+                  <div class="small">Current watch</div>
+                  <h3>Ward 12 transit disruption</h3>
+                  <p>Risk is rising because service delay, complaint velocity, and weather are reinforcing each other.</p>
+                </div>
+                <div class="score-ring" id="s1-ring">
+                  <div class="value">84</div>
+                </div>
+              </div>
+              <div class="frame-row">
+                <div class="card yellow">
+                  <div class="small">Response window</div>
+                  <h3>6 hours</h3>
+                  <p>Enough time to reroute, notify, and prevent a wider service issue.</p>
+                </div>
+                <div class="card mint">
+                  <div class="small">Access model</div>
+                  <h3>Signed sessions</h3>
+                  <p>Role-aware access is built into the backend rather than bolted on at the end.</p>
+                </div>
+              </div>
+              <div class="result-row">
+                <div class="pill yellow">Data live</div>
+                <div class="pill mint">Vertex route active</div>
+                <div class="pill coral">Explainable output</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="scene" id="scene-2" data-start="22" data-duration="22" data-track-index="0">
+        <div class="scene-content">
+          <div class="stack">
+            <div class="eyebrow blue" id="s2-eyebrow">The real problem</div>
+            <h1 class="title" id="s2-title">Cities do not have a data problem. They have a decision problem.</h1>
+            <p class="copy" id="s2-copy">
+              Transit logs, citizen complaints, environmental feeds, and service notes live in different
+              places. CyVix pulls them into one operational view so the city can decide what matters first.
+            </p>
+            <div class="flow" id="s2-flow">
+              <div class="flow-step">Ingest</div>
+              <div class="arrow">→</div>
+              <div class="flow-step">Normalize</div>
+              <div class="arrow">→</div>
+              <div class="flow-step">Score</div>
+              <div class="arrow">→</div>
+              <div class="flow-step">Explain</div>
+              <div class="arrow">→</div>
+              <div class="flow-step">Act</div>
+            </div>
+            <div class="caption" id="s2-caption">
+              The workflow is built around the question every operator asks: what is happening, why, and what should we do next?
+            </div>
+          </div>
+
+          <div class="stack">
+            <div class="source-grid" id="s2-sources">
+              <div class="card">
+                <div class="small">Source 1</div>
+                <h3>Transit telemetry</h3>
+                <p>Delay spikes, route variance, transfer misses, and crowding pressure.</p>
+              </div>
+              <div class="card mint">
+                <div class="small">Source 2</div>
+                <h3>Citizen feedback</h3>
+                <p>311 complaints, resident notes, and service frustration patterns.</p>
+              </div>
+              <div class="card coral">
+                <div class="small">Source 3</div>
+                <h3>Weather + service logs</h3>
+                <p>Heat, storms, outages, and local service history folded into the same view.</p>
+              </div>
+            </div>
+            <div class="panel" id="s2-engine">
+              <div class="panel-inner">
+                <div class="eyebrow mint">Decision engine</div>
+                <div style="margin-top: 16px;" class="number">84 / 100</div>
+                <p style="margin-top: 12px; font-size: 20px; line-height: 1.4;">
+                  BigQuery baseline + local scoring + retrieval memory + workflow recommendation.
+                </p>
+                <div style="margin-top: 16px;" class="result-row">
+                  <div class="pill blue">Risk score</div>
+                  <div class="pill yellow">Counterfactual</div>
+                  <div class="pill mint">Similar incidents</div>
+                </div>
+              </div>
+            </div>
+            <div class="result-row" id="s2-outcomes">
+              <div class="metric">
+                <div class="num">Fast</div>
+                <span class="label">time to insight</span>
+                <div class="sub">One decision surface replaces several manual lookups.</div>
+              </div>
+              <div class="metric">
+                <div class="num">Clear</div>
+                <span class="label">explanation</span>
+                <div class="sub">Every answer includes the why, not just the score.</div>
+              </div>
+              <div class="metric">
+                <div class="num">Action</div>
+                <span class="label">next step</span>
+                <div class="sub">The system recommends the best response window and workflow.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="transition" id="t1" data-start="21.35" data-duration="0.65" data-track-index="1">
+        <div class="bar a"></div>
+        <div class="bar b"></div>
+        <div class="bar c"></div>
+      </div>
+
+      <section class="scene" id="scene-3" data-start="44" data-duration="22" data-track-index="0">
+        <div class="scene-content">
+          <div class="stack">
+            <div class="eyebrow" id="s3-eyebrow">Live product flow</div>
+            <h1 class="title" id="s3-title">Ask in plain English. Get back a civic answer.</h1>
+            <p class="copy" id="s3-copy">
+              The app reacts to a question, pulls the right baseline, uses Vertex-backed reasoning for the
+              narrative, and shows the recommendation in a product-shaped workspace.
+            </p>
+            <div class="panel" id="s3-input">
+              <div class="panel-inner">
+                <div class="small">Ask CyVix</div>
+                <div style="margin-top: 12px; padding: 16px 18px; border: 3px solid var(--ink); border-radius: 18px; background: white; box-shadow: 6px 6px 0 0 var(--ink); font-size: 18px; font-weight: 700;">
+                  Why is this ward flagged?
+                </div>
+                <div style="margin-top: 14px;" class="result-row">
+                  <div class="pill blue">Run analysis</div>
+                  <div class="pill yellow">Open operations</div>
+                  <div class="pill mint">Load demo data</div>
+                </div>
+              </div>
+            </div>
+            <div class="caption" id="s3-caption">
+              This is a working interaction, not a static mockup. The backend routes the request and returns a decision packet.
+            </div>
+          </div>
+
+          <div class="app-shell panel" id="s3-app">
+            <div class="app-header">
+              <div>
+                <div class="app-title">CyVix live workspace</div>
+                <div class="muted" style="font-size: 15px; margin-top: 4px;">Civic Decision Intelligence</div>
+              </div>
+              <div class="pill coral">Signed session active</div>
+            </div>
+            <div class="app-grid">
+              <div class="stack-list">
+                <div class="signal">
+                  <div>
+                    <strong>Ward 12</strong>
+                    <div class="muted" style="margin-top: 4px; font-size: 15px;">Transit telemetry + citizen feedback</div>
+                  </div>
+                  <div class="meta">84</div>
+                </div>
+                <div class="signal">
+                  <div>
+                    <strong>Live narrative</strong>
+                    <div class="muted" style="margin-top: 4px; font-size: 15px;">Vertex AI generates the explanation</div>
+                  </div>
+                  <div class="meta">ON</div>
+                </div>
+                <div class="signal">
+                  <div>
+                    <strong>BigQuery baseline</strong>
+                    <div class="muted" style="margin-top: 4px; font-size: 15px;">Historical comparison row loaded</div>
+                  </div>
+                  <div class="meta">LIVE</div>
+                </div>
+              </div>
+              <div class="stack-list">
+                <div class="card blue">
+                  <div class="small">Model reply</div>
+                  <h3>Reroute two buses and notify riders immediately.</h3>
+                  <p>The signal mix shows delay, complaints, and weather reinforcing each other inside the same ward.</p>
+                </div>
+                <div class="card yellow">
+                  <div class="small">Evidence trail</div>
+                  <p>question_tokens=5 · ward=Ward 12 · forecast_risk=96 · retrieval_hits=2 · confidence=91%</p>
+                </div>
+              </div>
+            </div>
+            <div class="panel-inner" style="border-top: 3px solid var(--ink); background: #fffdf8;">
+              <div class="result-row">
+                <div class="pill blue">BigQuery live</div>
+                <div class="pill mint">Vertex generated narrative</div>
+                <div class="pill yellow">Rate limited and cached</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="transition" id="t2" data-start="43.35" data-duration="0.65" data-track-index="1">
+        <div class="bar a"></div>
+        <div class="bar b"></div>
+        <div class="bar c"></div>
+      </div>
+
+      <section class="scene" id="scene-4" data-start="66" data-duration="22" data-track-index="0">
+        <div class="scene-content">
+          <div class="stack">
+            <div class="eyebrow mint" id="s4-eyebrow">System design</div>
+            <h1 class="title" id="s4-title">A decision loop built for real cloud deployment.</h1>
+            <p class="copy" id="s4-copy">
+              The system keeps the layers separate so each part can scale independently: ingestion, reasoning,
+              retrieval, explanation, and workflow automation.
+            </p>
+            <div class="flow-lane" id="s4-flow">
+              <div class="lane-row">
+                <div class="n">1</div>
+                <div class="t">Observe</div>
+                <div class="s">Ingest signals and compare them to the baseline.</div>
+              </div>
+              <div class="lane-row">
+                <div class="n">2</div>
+                <div class="t">Reason</div>
+                <div class="s">Use Vertex-backed analysis and deterministic scoring.</div>
+              </div>
+              <div class="lane-row">
+                <div class="n">3</div>
+                <div class="t">Retrieve</div>
+                <div class="s">Pull similar incidents and policy memory into view.</div>
+              </div>
+              <div class="lane-row">
+                <div class="n">4</div>
+                <div class="t">Explain</div>
+                <div class="s">Turn the result into a civic-readable narrative.</div>
+              </div>
+              <div class="lane-row">
+                <div class="n">5</div>
+                <div class="t">Act</div>
+                <div class="s">Trigger alerts, tasks, and follow-up checks.</div>
+              </div>
+            </div>
+            <div class="caption" id="s4-caption">
+              The architecture is modular, secure, and ready for a real deployment path.
+            </div>
+          </div>
+
+          <div class="architecture">
+            <div class="service-grid" id="s4-services">
+              <div class="card"><h3>Cloud Run</h3><p>App shell and API hosting with fast scaling.</p></div>
+              <div class="card mint"><h3>BigQuery</h3><p>Historical baseline and scenario comparison layer.</p></div>
+              <div class="card yellow"><h3>Vertex AI</h3><p>Live generated explanation for the analysis route.</p></div>
+              <div class="card coral"><h3>Cloud Storage</h3><p>Demo bundles and ingest artifacts.</p></div>
+              <div class="card"><h3>Looker</h3><p>Executive reporting and drill-down view.</p></div>
+              <div class="card blue"><h3>ADK</h3><p>Observe, reason, retrieve, explain, act orchestration.</p></div>
+              <div class="card yellow"><h3>GKE</h3><p>Containerized deployment path for future scale.</p></div>
+              <div class="card mint"><h3>Cloud Functions</h3><p>Workflow triggers and follow-up automation.</p></div>
+              <div class="card coral"><h3>Spark</h3><p>Batch processing artifact for heavier workloads.</p></div>
+            </div>
+            <div class="panel" id="s4-diagram">
+              <div class="panel-inner">
+                <div class="eyebrow blue">Deployment path</div>
+                <div style="margin-top: 16px; font-size: 22px; line-height: 1.45;">
+                  Cloud Run serves the app, BigQuery stores the baselines, Vertex generates the narrative,
+                  and Looker surfaces the executive view.
+                </div>
+                <div style="margin-top: 18px;" class="result-row">
+                  <div class="pill blue">Scales by service</div>
+                  <div class="pill mint">Secure by design</div>
+                  <div class="pill yellow">Demo ready</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="transition" id="t3" data-start="65.35" data-duration="0.65" data-track-index="1">
+        <div class="bar a"></div>
+        <div class="bar b"></div>
+        <div class="bar c"></div>
+      </div>
+
+      <section class="scene" id="scene-5" data-start="88" data-duration="20" data-track-index="0">
+        <div class="scene-content single">
+          <div class="closing">
+            <div class="stack">
+              <div class="eyebrow blue" id="s5-eyebrow">Why it wins</div>
+              <h1 class="title large" id="s5-title">Faster insight. Clearer action. Better city outcomes.</h1>
+              <p class="copy" id="s5-copy">
+                CyVix is a product-shaped civic intelligence system: it is real enough to demo, structured enough to
+                scale, and explainable enough to trust.
+              </p>
+              <div class="impact-grid" id="s5-impact">
+                <div class="metric">
+                  <div class="num">Faster</div>
+                  <span class="label">time to response</span>
+                  <div class="sub">Teams see the signal, the why, and the next step in one place.</div>
+                </div>
+                <div class="metric">
+                  <div class="num">Clearer</div>
+                  <span class="label">decision quality</span>
+                  <div class="sub">Every recommendation comes with evidence and a counterfactual.</div>
+                </div>
+                <div class="metric">
+                  <div class="num">Scalable</div>
+                  <span class="label">deployment path</span>
+                  <div class="sub">Cloud Run, BigQuery, Vertex, and GKE give the app a real runway.</div>
+                </div>
+              </div>
+              <div class="caption" id="s5-caption">
+                CyVix is not just an AI demo. It is a decision layer for civic teams.
+              </div>
+            </div>
+
+            <div class="final-score">
+              <div class="panel">
+                <div class="panel-inner">
+                  <div class="small">Live URL</div>
+                  <div class="footer-url" style="margin-top: 10px;">
+                    https://cyvix-895728166282.asia-south1.run.app/
+                  </div>
+                  <div style="margin-top: 16px;" class="result-row">
+                    <div class="pill blue">Cloud Run live</div>
+                    <div class="pill mint">BigQuery seeded</div>
+                    <div class="pill yellow">Vertex routed</div>
+                  </div>
+                </div>
+              </div>
+              <div class="panel blue">
+                <div class="panel-inner">
+                  <div class="small">Final line</div>
+                  <div style="margin-top: 10px; font-size: 38px; line-height: 1.05; font-weight: 900; letter-spacing: -0.05em;">
+                    See the city before it feels the problem.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="transition" id="t4" data-start="87.35" data-duration="0.65" data-track-index="1">
+        <div class="bar a"></div>
+        <div class="bar b"></div>
+        <div class="bar c"></div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+
+      const tl = gsap.timeline({ paused: true });
+      const contentEase = "power3.out";
+
+      function revealSceneOne() {
+        tl.from("#s1-eyebrow", { y: 24, opacity: 0, duration: 0.5, ease: "back.out(1.5)" }, 0.18);
+        tl.from("#s1-title", { y: 52, opacity: 0, duration: 0.8, ease: "expo.out" }, 0.24);
+        tl.from("#s1-copy", { y: 30, opacity: 0, duration: 0.55, ease: "power2.out" }, 0.42);
+        tl.from("#s1-chips .chip", { y: 24, opacity: 0, duration: 0.45, stagger: 0.08, ease: "power2.out" }, 0.64);
+        tl.from("#s1-metrics .metric", { y: 28, opacity: 0, duration: 0.55, stagger: 0.12, ease: "power3.out" }, 0.84);
+        tl.from("#s1-caption", { y: 20, opacity: 0, duration: 0.45, ease: "power2.out" }, 1.25);
+        tl.from("#s1-browser", { x: 56, opacity: 0, scale: 0.98, duration: 0.8, ease: "expo.out" }, 0.28);
+        tl.from("#s1-ring", { scale: 0.7, opacity: 0, duration: 0.65, ease: "back.out(1.8)" }, 0.95);
+        tl.from("#s1-browser .card", { y: 28, opacity: 0, stagger: 0.1, duration: 0.5, ease: "power2.out" }, 1.05);
+      }
+
+      function revealSceneTwo() {
+        tl.from("#s2-eyebrow", { y: 20, opacity: 0, duration: 0.45, ease: "back.out(1.6)" }, 22.18);
+        tl.from("#s2-title", { y: 54, opacity: 0, duration: 0.72, ease: "expo.out" }, 22.26);
+        tl.from("#s2-copy", { y: 28, opacity: 0, duration: 0.5, ease: "power2.out" }, 22.46);
+        tl.from("#s2-flow .flow-step", { y: 18, opacity: 0, duration: 0.45, stagger: 0.08, ease: "power2.out" }, 22.74);
+        tl.from("#s2-sources .card", { y: 26, opacity: 0, duration: 0.5, stagger: 0.09, ease: "power3.out" }, 23.12);
+        tl.from("#s2-engine", { scale: 0.94, opacity: 0, duration: 0.68, ease: "expo.out" }, 23.42);
+        tl.from("#s2-outcomes .metric", { y: 24, opacity: 0, duration: 0.5, stagger: 0.1, ease: "power2.out" }, 23.82);
+        tl.from("#s2-caption", { y: 18, opacity: 0, duration: 0.42, ease: "power2.out" }, 24.2);
+      }
+
+      function revealSceneThree() {
+        tl.from("#s3-eyebrow", { y: 18, opacity: 0, duration: 0.45, ease: "back.out(1.6)" }, 44.2);
+        tl.from("#s3-title", { y: 48, opacity: 0, duration: 0.74, ease: "expo.out" }, 44.28);
+        tl.from("#s3-copy", { y: 28, opacity: 0, duration: 0.5, ease: "power2.out" }, 44.48);
+        tl.from("#s3-input", { x: -44, opacity: 0, duration: 0.65, ease: "power3.out" }, 44.92);
+        tl.from("#s3-app", { x: 52, opacity: 0, scale: 0.98, duration: 0.82, ease: "expo.out" }, 45.06);
+        tl.from("#s3-app .signal", { x: -20, opacity: 0, duration: 0.45, stagger: 0.1, ease: "power2.out" }, 45.42);
+        tl.from("#s3-app .card", { y: 24, opacity: 0, duration: 0.5, stagger: 0.12, ease: "power3.out" }, 45.72);
+        tl.from("#s3-caption", { y: 18, opacity: 0, duration: 0.45, ease: "power2.out" }, 46.18);
+      }
+
+      function revealSceneFour() {
+        tl.from("#s4-eyebrow", { y: 18, opacity: 0, duration: 0.45, ease: "back.out(1.5)" }, 66.18);
+        tl.from("#s4-title", { y: 48, opacity: 0, duration: 0.72, ease: "expo.out" }, 66.26);
+        tl.from("#s4-copy", { y: 26, opacity: 0, duration: 0.52, ease: "power2.out" }, 66.46);
+        tl.from("#s4-flow .lane-row", { x: -36, opacity: 0, duration: 0.48, stagger: 0.09, ease: "power2.out" }, 66.78);
+        tl.from("#s4-services .card", { y: 24, opacity: 0, duration: 0.5, stagger: 0.05, ease: "power3.out" }, 67.08);
+        tl.from("#s4-diagram", { scale: 0.95, opacity: 0, duration: 0.7, ease: "expo.out" }, 67.56);
+        tl.from("#s4-caption", { y: 18, opacity: 0, duration: 0.45, ease: "power2.out" }, 67.98);
+      }
+
+      function revealSceneFive() {
+        tl.from("#s5-eyebrow", { y: 18, opacity: 0, duration: 0.45, ease: "back.out(1.5)" }, 88.18);
+        tl.from("#s5-title", { y: 52, opacity: 0, duration: 0.74, ease: "expo.out" }, 88.26);
+        tl.from("#s5-copy", { y: 28, opacity: 0, duration: 0.5, ease: "power2.out" }, 88.48);
+        tl.from("#s5-impact .metric", { y: 22, opacity: 0, duration: 0.48, stagger: 0.1, ease: "power3.out" }, 88.82);
+        tl.from("#s5-caption", { y: 18, opacity: 0, duration: 0.45, ease: "power2.out" }, 89.2);
+        tl.from(".final-score .panel", { x: 40, opacity: 0, duration: 0.65, stagger: 0.1, ease: "expo.out" }, 89.1);
+      }
+
+      function revealTransitions() {
+        [1, 2, 3, 4].forEach((index, i) => {
+          const start = [21.35, 43.35, 65.35, 87.35][i];
+          const selector = "#t" + index;
+          tl.from(selector + " .bar.a", { xPercent: -110, duration: 0.34, ease: "power4.inOut" }, start);
+          tl.from(selector + " .bar.b", { xPercent: -70, duration: 0.34, ease: "power4.inOut" }, start + 0.08);
+          tl.from(selector + " .bar.c", { xPercent: -30, duration: 0.34, ease: "power4.inOut" }, start + 0.16);
+          tl.to(selector + " .bar.a", { xPercent: 120, duration: 0.32, ease: "power4.inOut" }, start + 0.24);
+          tl.to(selector + " .bar.b", { xPercent: 120, duration: 0.32, ease: "power4.inOut" }, start + 0.30);
+          tl.to(selector + " .bar.c", { xPercent: 120, duration: 0.32, ease: "power4.inOut" }, start + 0.36);
+        });
+      }
+
+      function ambientMotion() {
+        tl.to("#s1-browser", { y: -8, duration: 4, ease: "sine.inOut", yoyo: true, repeat: 26 }, 0);
+        tl.to("#s1-ring", { rotate: 360, duration: 18, ease: "none", repeat: 5 }, 0);
+        tl.to("#s2-engine", { y: -10, duration: 5, ease: "sine.inOut", yoyo: true, repeat: 20 }, 22);
+        tl.to("#s3-app", { y: -8, duration: 4.4, ease: "sine.inOut", yoyo: true, repeat: 24 }, 44);
+        tl.to("#s4-diagram", { y: -10, duration: 4.8, ease: "sine.inOut", yoyo: true, repeat: 20 }, 66);
+        tl.to(".grain", { opacity: 0.11, duration: 6, ease: "sine.inOut", yoyo: true, repeat: 12 }, 0);
+      }
+
+      revealSceneOne();
+      revealSceneTwo();
+      revealSceneThree();
+      revealSceneFour();
+      revealSceneFive();
+      revealTransitions();
+      ambientMotion();
+
+      window.__timelines["cyvix-demo-video"] = tl;
+    </script>
+  </body>
+</html>
