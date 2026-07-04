@@ -2,6 +2,34 @@
 
 CyVix is a civic decision intelligence platform for the Google Cloud hackathon brief. It turns fragmented city signals into an explainable decision packet that helps public teams detect issues early, understand why they matter, and trigger the next action.
 
+Live demo:
+
+- [Cloud Run deployment](https://cyvix-895728166282.asia-south1.run.app)
+
+## Live Stack Status
+
+The demo is explicit about what is live today versus what is represented as product architecture.
+
+| Service | Current Status | Notes |
+| --- | --- | --- |
+| Cloud Run | Live | Hosts the deployed app and API routes |
+| BigQuery | Live | Used for scenario baseline reads when configured |
+| Cloud Storage | Live | Writes ingest batches when configured |
+| Looker | Demo layer only | Shown as a leadership dashboard concept, not embedded live yet |
+| Managed Service for Apache Spark | Not used | Not part of the current prototype |
+| Google Kubernetes Engine | Not used | Not part of the current prototype |
+| Gemini Enterprise Agent Platform | Not used | The agent layer is modeled in-app, not wired to this platform yet |
+
+The broader Google Cloud narrative in the UI and README also maps to:
+
+- `Vertex AI` for prediction and scoring language
+- `Gemini` for explanation synthesis language
+- `AlloyDB` for retrieval and incident memory language
+- `Cloud Functions` for workflow automation language
+- `Agent Development Kit (ADK)` for orchestration language
+
+Those layers are represented by the decision engine, agent trace, and UI copy today, while BigQuery, Cloud Storage, and Cloud Run are the live cloud-backed pieces.
+
 ## 1. How We Approached The Problem Statement
 
 We translated the broad problem statement into a focused product: a civic operations layer that can ingest structured and unstructured data, score risk, retrieve similar incidents, explain outcomes in natural language, and trigger follow-up workflows.
@@ -9,13 +37,13 @@ We translated the broad problem statement into a focused product: a civic operat
 The solution maps directly to the Google Cloud ecosystem:
 
 - `BigQuery` stores the city baseline and scenario history. The app now queries it when dataset and table env vars are configured.
-- `Vertex AI` performs risk scoring and prediction.
-- `Gemini` turns outputs into plain-language explanations.
-- `AlloyDB` stores and retrieves similar incidents and playbooks.
-- `Cloud Run` serves the app shell and decision APIs.
-- `Cloud Functions` handles automated follow-up actions.
-- `Agent Development Kit (ADK)` orchestrates the observe -> reason -> retrieve -> explain -> act loop.
-- `Looker` represents the leadership and operations dashboard layer.
+- `Vertex AI` performs risk scoring and prediction in the product narrative.
+- `Gemini` turns outputs into plain-language explanations in the product narrative.
+- `AlloyDB` stores and retrieves similar incidents and playbooks in the product narrative.
+- `Cloud Run` serves the app shell and decision APIs live.
+- `Cloud Functions` handles automated follow-up actions in the product narrative.
+- `Agent Development Kit (ADK)` orchestrates the observe -> reason -> retrieve -> explain -> act loop in the product narrative.
+- `Looker` represents the leadership and operations dashboard layer in the product narrative.
 - `Cloud Storage` and `Dataflow` are used in the data-ingest story. The app now writes ingest batches to a bucket when configured.
 
 The current build is fully demoable with local mock data and deterministic decision logic. It does not require live Google keys to run locally, but the code and documentation are structured so those services can be swapped in cleanly.
@@ -24,6 +52,7 @@ Live cloud-backed behavior now works for:
 
 - BigQuery reads for scenario baseline context
 - Cloud Storage writes for ingest batches
+- Cloud Run deployment for the live demo URL
 
 Those features fall back to local demo mode if the cloud env vars are missing.
 
@@ -237,10 +266,13 @@ flowchart TB
 | Vertex AI | Risk scoring and prediction | Represented in analysis and decision packets |
 | Gemini | Natural-language explanation layer | Represented in the agent story |
 | AlloyDB | Similar-incident retrieval and memory | Represented in retrieval flow |
-| Cloud Run | API hosting and app shell | Represented as the service shell |
+| Cloud Run | API hosting and app shell | Live deployment URL is published above |
 | Cloud Functions | Workflow automation and alerts | Represented in recommendation flow |
 | Looker | Leadership dashboard and drill-down | Represented in product/storyboard layer |
 | Agent Development Kit (ADK) | Multi-step orchestration | Visible in the agent trace |
+| Managed Service for Apache Spark | Batch processing layer | Not used in the current prototype |
+| Google Kubernetes Engine | Container orchestration layer | Not used in the current prototype |
+| Gemini Enterprise Agent Platform | Managed agent platform | Not used in the current prototype |
 
 ### NVIDIA Services
 
@@ -300,6 +332,17 @@ The current demo works without keys. For live Google Cloud integration, wire the
 - `LOOKER_INSTANCE_URL`
 - `LOOKER_CLIENT_ID`
 - `LOOKER_CLIENT_SECRET`
+
+### What Is Actually Live Today
+
+- `BigQuery`: yes, used by the live app for scenario baseline reads when the dataset and table env vars are set.
+- `Cloud Storage`: yes, used by the live app for ingest batch writes when `GCS_BUCKET` is set.
+- `Cloud Run`: yes, the demo is deployed and reachable at the live URL above.
+- `Looker`: no, currently a product-story layer only.
+- `Managed Service for Apache Spark`: no, not integrated.
+- `Google Kubernetes Engine`: no, not integrated.
+- `Gemini Enterprise Agent Platform`: no, not integrated.
+- `Vertex AI`, `Gemini`, `AlloyDB`, `Cloud Functions`, `ADK`: represented in the architecture, trace, and copy, but not yet wired to live Google APIs in this prototype.
 
 ## Local Run
 
