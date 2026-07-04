@@ -1,0 +1,15 @@
+import { buildAgentRun } from "@/lib/adk";
+
+export async function POST(request) {
+  const body = await request.json();
+  const scenarioId = body?.scenarioId ?? "transit";
+  const analysis = body?.analysis ?? null;
+  const agentRun = buildAgentRun({ scenarioId, analysis });
+
+  return Response.json({
+    ok: true,
+    stage: "agent",
+    agentRun
+  });
+}
+

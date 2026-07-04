@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#07111f" />
+    <title>AetherPulse | Decision Intelligence for Cities</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="noise"></div>
+    <div class="orb orb-a"></div>
+    <div class="orb orb-b"></div>
+
+    <main class="shell">
+      <aside class="sidebar">
+        <section class="brand-card card">
+          <div class="brand">
+            <div class="brand-mark">AP</div>
+            <div>
+              <p>AetherPulse</p>
+              <span>Decision Intelligence Platform</span>
+            </div>
+          </div>
+          <p class="brand-copy">
+            A city ops copilot that ingests public data, scores neighborhood risk, explains why it matters, and recommends action.
+          </p>
+          <div class="status-row">
+            <span class="pill live">Live demo</span>
+            <span class="pill">Google Cloud stack</span>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <div>
+              <p class="eyebrow">City lens</p>
+              <h2 id="scenarioTitle">Transit disruption in Ward 12</h2>
+            </div>
+            <span class="pill" id="scenarioTag">Urban mobility</span>
+          </div>
+          <p id="scenarioSummary" class="summary">
+            Bus delay, rider complaints, and weather are combining into an avoidable service failure.
+          </p>
+          <div class="mini-metrics">
+            <div>
+              <span>Risk score</span>
+              <strong id="riskScore">84</strong>
+            </div>
+            <div>
+              <span>Forecast</span>
+              <strong id="forecastWindow">6h</strong>
+            </div>
+            <div>
+              <span>Confidence</span>
+              <strong id="confidence">91%</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <div>
+              <p class="eyebrow">Scenario</p>
+              <h3>Choose a city problem</h3>
+            </div>
+            <span class="pill muted">Demo data</span>
+          </div>
+          <div id="scenarioList" class="scenario-list"></div>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <div>
+              <p class="eyebrow">Input feeds</p>
+              <h3>Structured + unstructured</h3>
+            </div>
+          </div>
+          <div id="feedList" class="feed-list"></div>
+        </section>
+      </aside>
+
+      <section class="main">
+        <header class="hero card">
+          <div class="hero-copy">
+            <p class="eyebrow">Hackathon build</p>
+            <h1>Turn city telemetry into decisions, not dashboards.</h1>
+            <p>
+              AetherPulse combines streaming data, anomaly detection, retrieval, and generative reasoning to help city teams act before small issues become public failures.
+            </p>
+            <div class="cta-row">
+              <button class="primary" id="cycleButton" type="button">Run demo cycle</button>
+              <button class="ghost" id="toggleAuto" type="button">Auto-cycle on</button>
+            </div>
+          </div>
+          <div class="hero-stats">
+            <div class="glass">
+              <span>Signals ingested</span>
+              <strong id="signalCount">24,816</strong>
+              <small>Public + sensor data points this hour</small>
+            </div>
+            <div class="glass">
+              <span>Events correlated</span>
+              <strong id="eventCount">3</strong>
+              <small>Transit, complaints, weather, utility</small>
+            </div>
+            <div class="glass">
+              <span>Actions generated</span>
+              <strong id="actionCount">2</strong>
+              <small>Alerts, reroute, inspection, outreach</small>
+            </div>
+          </div>
+        </header>
+
+        <section class="top-grid">
+          <article class="card pipeline-card">
+            <div class="card-head">
+              <div>
+                <p class="eyebrow">Google Cloud pipeline</p>
+                <h3>Streaming ingest to decision output</h3>
+              </div>
+              <span class="pill live">Real-time simulation</span>
+            </div>
+
+            <div id="pipeline" class="pipeline"></div>
+
+            <div class="trace">
+              <div class="trace-head">
+                <span>Execution trace</span>
+                <span id="stageLabel">Ingesting feeds</span>
+              </div>
+              <pre id="traceLog"></pre>
+            </div>
+          </article>
+
+          <article class="card chart-card">
+            <div class="card-head">
+              <div>
+                <p class="eyebrow">Neighborhood risk</p>
+                <h3>Composite stress index</h3>
+              </div>
+              <span class="pill" id="wardFocus">Ward 12</span>
+            </div>
+            <svg viewBox="0 0 840 300" class="chart" aria-label="Composite risk chart">
+              <defs>
+                <linearGradient id="stressGradient" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stop-color="#69f0ca" />
+                  <stop offset="50%" stop-color="#f2c46e" />
+                  <stop offset="100%" stop-color="#ff7e92" />
+                </linearGradient>
+              </defs>
+              <g class="grid-lines">
+                <path d="M44 40H798" />
+                <path d="M44 100H798" />
+                <path d="M44 160H798" />
+                <path d="M44 220H798" />
+              </g>
+              <path id="areaPath" class="area" d=""></path>
+              <path id="linePath" class="line" d=""></path>
+              <g id="points"></g>
+            </svg>
+
+            <div id="signalStrip" class="signal-strip"></div>
+          </article>
+        </section>
+
+        <section class="mid-grid">
+          <article class="card copilot-card">
+            <div class="card-head">
+              <div>
+                <p class="eyebrow">Conversational analytics</p>
+                <h3>Ask the system in natural language</h3>
+              </div>
+              <span class="pill muted">Gemini-ready UX</span>
+            </div>
+
+            <div class="chat-log" id="chatLog"></div>
+
+            <form class="chat-form" id="chatForm">
+              <input
+                id="chatInput"
+                type="text"
+                autocomplete="off"
+                placeholder="Ask why a ward is flagged, what will happen next, or what the city should do"
+              />
+              <button class="primary" type="submit">Analyze</button>
+            </form>
+
+            <div class="suggestions">
+              <button class="chip" type="button" data-question="Why is Ward 12 flagged?">Why is Ward 12 flagged?</button>
+              <button class="chip" type="button" data-question="What should city staff do in the next 30 minutes?">Next 30 minutes?</button>
+              <button class="chip" type="button" data-question="Which ward is most likely to worsen next?">Which ward worsens next?</button>
+            </div>
+          </article>
+
+          <article class="card explain-card">
+            <div class="card-head">
+              <div>
+                <p class="eyebrow">Explainability</p>
+                <h3>Technical evidence + civic context</h3>
+              </div>
+              <span class="pill muted">Deterministic core</span>
+            </div>
+
+            <div class="split">
+              <section class="log-box">
+                <p class="log-label">Engineering log</p>
+                <pre id="engineeringLog"></pre>
+              </section>
+              <section class="log-box civic">
+                <p class="log-label">Civic context</p>
+                <p id="civicLog"></p>
+              </section>
+            </div>
+
+            <div class="action-package">
+              <div>
+                <p class="eyebrow">Next best action</p>
+                <h3 id="actionTitle">Reroute two buses and notify riders</h3>
+              </div>
+              <p id="actionBody"></p>
+              <div class="action-grid">
+                <div class="info-chip">
+                  <span>Risk if ignored</span>
+                  <strong id="riskIfIgnored">High</strong>
+                </div>
+                <div class="info-chip">
+                  <span>Response window</span>
+                  <strong id="responseWindow">6h</strong>
+                </div>
+                <div class="info-chip">
+                  <span>Primary signal</span>
+                  <strong id="primarySignal">Transit telemetry</strong>
+                </div>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section class="bottom-grid">
+          <article class="card stack-card">
+            <div class="card-head">
+              <div>
+                <p class="eyebrow">Google stack</p>
+                <h3>How the system hangs together</h3>
+              </div>
+            </div>
+            <div id="stackGrid" class="stack-grid"></div>
+          </article>
+
+          <article class="card workflow-card">
+            <div class="card-head">
+              <div>
+                <p class="eyebrow">Workflow automation</p>
+                <h3>Actions triggered by the model</h3>
+              </div>
+              <span class="pill live">ADK orchestration</span>
+            </div>
+            <div id="workflowList" class="workflow-list"></div>
+          </article>
+        </section>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
