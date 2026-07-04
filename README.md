@@ -594,28 +594,3 @@ kubectl -n cyvix rollout status deployment/cyvix
 
 ## Demo Notes
 
-- Switch between scenarios to show different city conditions.
-- Ask a natural-language question to trigger the decision engine.
-- Use the sidebar to jump between product sections.
-- Show the agent trace, tool calls, and counterfactual to explain how the system works.
-- Use the Looker-style panel to show operational status, faux filters, and drill-down tabs.
-- Point to the Google Cloud mapping to demonstrate that the solution is grounded in real platform primitives.
-
-## 13. Live Demo Flow
-
-Use this sequence when presenting the app:
-
-1. Open the homepage and let the rolling copy introduce the civic use case.
-2. Create a signed session in the access panel if you want to show the auth boundary.
-3. Pick a scenario and submit a question in the natural-language box.
-4. Show the agent trace, the BigQuery-backed baseline, and the Vertex-generated narrative.
-5. Open the Looker-style panel, switch the ward comparison, and drill into trend deltas.
-6. Trigger the demo initializer to show how the seed bundle and storage path are prepared.
-7. End by pointing to the repo evidence files and the Cloud Run live URL.
-
-### What To Say During The Demo
-
-- The app ingests civic signals, scores risk, retrieves similar cases, and recommends the next move.
-- The live backend now answers with a real Vertex route and reads baseline data from BigQuery.
-- The auth panel demonstrates session-based access without exposing secrets in the repository.
-- The Looker workspace is a product-shaped proxy for an executive dashboard with filters and comparisons.
