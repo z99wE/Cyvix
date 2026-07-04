@@ -1,4 +1,5 @@
 import { getScenario } from "@/lib/mock-data";
+import { persistIngestBatch } from "@/lib/gcp-client";
 
 function buildIngestBatch(scenario) {
   const now = new Date();
@@ -26,6 +27,8 @@ export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const scenarioId = searchParams.get("scenarioId") ?? "transit";
   const scenario = getScenario(scenarioId);
+  const batch = buildIngestBatch(scenario);
+  const storage = await persistIngestBatch({ scenarioId, batch });
 
   return Response.json({
     ok: true,
@@ -35,7 +38,7 @@ export async function GET(request) {
       "Dataflow",
       "BigQuery"
     ],
-    batch: buildIngestBatch(scenario)
+    batch,
+    storage
   });
 }
-

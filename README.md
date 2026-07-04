@@ -8,7 +8,7 @@ We translated the broad problem statement into a focused product: a civic operat
 
 The solution maps directly to the Google Cloud ecosystem:
 
-- `BigQuery` stores the city baseline and scenario history.
+- `BigQuery` stores the city baseline and scenario history. The app now queries it when dataset and table env vars are configured.
 - `Vertex AI` performs risk scoring and prediction.
 - `Gemini` turns outputs into plain-language explanations.
 - `AlloyDB` stores and retrieves similar incidents and playbooks.
@@ -16,9 +16,16 @@ The solution maps directly to the Google Cloud ecosystem:
 - `Cloud Functions` handles automated follow-up actions.
 - `Agent Development Kit (ADK)` orchestrates the observe -> reason -> retrieve -> explain -> act loop.
 - `Looker` represents the leadership and operations dashboard layer.
-- `Cloud Storage` and `Dataflow` are used in the data-ingest story.
+- `Cloud Storage` and `Dataflow` are used in the data-ingest story. The app now writes ingest batches to a bucket when configured.
 
 The current build is fully demoable with local mock data and deterministic decision logic. It does not require live Google keys to run locally, but the code and documentation are structured so those services can be swapped in cleanly.
+
+Live cloud-backed behavior now works for:
+
+- BigQuery reads for scenario baseline context
+- Cloud Storage writes for ingest batches
+
+Those features fall back to local demo mode if the cloud env vars are missing.
 
 If you add provider keys in `.env.local`, the app will enrich the civic summaries with live LLM output:
 
@@ -28,6 +35,11 @@ If you add provider keys in `.env.local`, the app will enrich the civic summarie
 - `NVIDIA_NIM_BASE_URL`
 - `NVIDIA_NIM_MODEL`
 - `GOOGLE_CLOUD_PROJECT`
+- `GCP_PROJECT_ID`
+- `BIGQUERY_DATASET`
+- `BIGQUERY_TABLE`
+- `BIGQUERY_LOCATION`
+- `GCS_BUCKET`
 
 ## 2. Real-World Problem And Practical Impact
 
@@ -219,9 +231,9 @@ flowchart TB
 
 | Service | Role In CyVix | Status |
 | --- | --- | --- |
-| Cloud Storage | Raw city feed landing zone | Modeled in the ingest story |
+| Cloud Storage | Raw city feed landing zone | Live ingest writes when `GCS_BUCKET` is configured |
 | Dataflow | Stream normalization and joins | Modeled in the ingest story |
-| BigQuery | Historical baseline and feature layer | Used in demo logic and narrative |
+| BigQuery | Historical baseline and feature layer | Live reads when dataset and table env vars are configured |
 | Vertex AI | Risk scoring and prediction | Represented in analysis and decision packets |
 | Gemini | Natural-language explanation layer | Represented in the agent story |
 | AlloyDB | Similar-incident retrieval and memory | Represented in retrieval flow |
@@ -277,9 +289,12 @@ The current demo works without keys. For live Google Cloud integration, wire the
 - `GOOGLE_APPLICATION_CREDENTIALS`
 - `GCP_PROJECT_ID`
 - `GCP_REGION`
-- `VERTEX_LOCATION`
+- `GOOGLE_CLOUD_PROJECT`
 - `BIGQUERY_DATASET`
 - `BIGQUERY_TABLE`
+- `BIGQUERY_LOCATION`
+- `GCS_BUCKET`
+- `VERTEX_LOCATION`
 - `ALLOYDB_CONNECTION_URL`
 - `GEMINI_API_KEY` or service-account based Gemini access
 - `LOOKER_INSTANCE_URL`
@@ -305,6 +320,27 @@ npm run dev
 ```text
 http://localhost:3000
 ```
+
+### Google Cloud Setup For Live Data
+
+If you want the real BigQuery and Cloud Storage paths to run locally, authenticate the Google Cloud CLI first:
+
+```text
+gcloud auth application-default login
+gcloud config set project gcp-apac-501407
+```
+
+Expected BigQuery table shape for baseline reads:
+
+- `scenario_id`
+- `risk_score`
+- `confidence`
+- `summary`
+- `updated_at`
+
+Expected Cloud Storage bucket behavior:
+
+- The ingest route writes JSON batches to `gs://$GCS_BUCKET/cyvix/ingest/...`
 
 ## Demo Notes
 

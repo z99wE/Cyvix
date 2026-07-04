@@ -321,7 +321,11 @@ function getFallbackPayload(scenario) {
         }
       ]
     },
-    decision
+    decision,
+    storage: {
+      connected: false,
+      source: "local-fallback"
+    }
   };
 }
 
@@ -494,6 +498,8 @@ export default function Page() {
   const activeIngest = active.ingest ?? getFallbackPayload(scenario).ingest;
   const activeDecision = active.decision ?? getFallbackPayload(scenario).decision;
   const activeProvider = active.provider ?? { source: "local", providerStatus: {} };
+  const activeStorage = active.storage ?? { connected: false, source: "local-fallback" };
+  const activeGcp = activeAnalysis.gcp ?? { bigquery: { connected: false, source: "local-fallback" } };
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -546,7 +552,8 @@ export default function Page() {
             recommendation: recommendationJson.recommendation,
             agentRun: agentJson.agentRun,
             decision: decisionJson.decision,
-            provider: analysisJson.provider
+            provider: analysisJson.provider,
+            storage: ingestJson.storage
           });
         }
       } catch {
@@ -642,9 +649,22 @@ export default function Page() {
                 <p className="mt-1 text-sm leading-6 text-ink-soft">
                   {activeProvider.providerStatus?.groq
                     ? "Groq is connected for narrative enrichment."
-                    : activeProvider.providerStatus?.nim
-                      ? "NVIDIA NIM is connected for narrative enrichment."
-                      : "Local fallback is active."}
+                  : activeProvider.providerStatus?.nim
+                    ? "NVIDIA NIM is connected for narrative enrichment."
+                    : "Local fallback is active."}
+                </p>
+              </div>
+              <div className="rounded-[20px] border-[3px] border-black bg-white p-4 shadow-[6px_6px_0_0_#111]">
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-ink-muted">
+                  Cloud data plane
+                </p>
+                <p className="mt-2 text-lg font-black tracking-[-0.04em] text-ink">
+                  {activeGcp.bigquery?.connected ? "BigQuery live" : "BigQuery fallback"}
+                </p>
+                <p className="mt-1 text-sm leading-6 text-ink-soft">
+                  {activeStorage.connected
+                    ? `Cloud Storage writes to ${activeStorage.bucket}.`
+                    : "Cloud Storage stays local until a bucket is configured."}
                 </p>
               </div>
             </div>
