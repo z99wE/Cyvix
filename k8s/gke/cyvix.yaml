@@ -1,0 +1,70 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cyvix
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cyvix-config
+  namespace: cyvix
+data:
+  gcp-project-id: gcp-apac-501407
+  looker-dashboard-url: https://looker.example.com
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cyvix
+  namespace: cyvix
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cyvix
+  template:
+    metadata:
+      labels:
+        app: cyvix
+    spec:
+      containers:
+        - name: cyvix
+          image: gcr.io/PROJECT_ID/cyvix:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: "8080"
+            - name: GCP_PROJECT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: cyvix-config
+                  key: gcp-project-id
+            - name: BIGQUERY_DATASET
+              value: "cyvix_demo"
+            - name: BIGQUERY_TABLE
+              value: "scenario_baselines"
+            - name: GCS_BUCKET
+              value: "cyvix-demo-bucket"
+            - name: LOOKER_DASHBOARD_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: cyvix-config
+                  key: looker-dashboard-url
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cyvix
+  namespace: cyvix
+spec:
+  type: LoadBalancer
+  selector:
+    app: cyvix
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP

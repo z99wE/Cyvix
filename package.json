@@ -2,11 +2,14 @@
   "name": "aetherpulse",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start -H 0.0.0.0 -p ${PORT:-8080}",
-    "lint": "next lint"
+    "lint": "next lint",
+    "seed:bigquery": "node scripts/seed-bigquery.mjs",
+    "demo:init": "node scripts/init-demo.mjs"
   },
   "dependencies": {
     "@google-cloud/bigquery": "^8.3.1",

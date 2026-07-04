@@ -202,6 +202,8 @@ flowchart TB
     RECOMMEND["/api/recommend"]
     AGENT["/api/agent"]
     DECISION["/api/decision"]
+    PLATFORM["/api/platform"]
+    DEMO["/api/demo"]
   end
 
   subgraph Engine["Decision Engine"]
@@ -228,6 +230,8 @@ flowchart TB
   end
 
   UI --> API
+  UI --> PLATFORM
+  UI --> DEMO
   API --> FUSION
   FUSION --> ANALYTICS
   FUSION --> WORKFLOWS
@@ -329,9 +333,16 @@ The current demo works without keys. For live Google Cloud integration, wire the
 - `VERTEX_LOCATION`
 - `ALLOYDB_CONNECTION_URL`
 - `GEMINI_API_KEY` or service-account based Gemini access
+- `LOOKER_DASHBOARD_TITLE`
+- `LOOKER_DASHBOARD_URL`
+- `LOOKER_EMBED_URL`
 - `LOOKER_INSTANCE_URL`
 - `LOOKER_CLIENT_ID`
 - `LOOKER_CLIENT_SECRET`
+- `GKE_CLUSTER_NAME`
+- `GKE_LOCATION`
+- `GKE_NAMESPACE`
+- `GKE_IMAGE`
 
 ### What Is Actually Live Today
 
@@ -385,10 +396,61 @@ Expected Cloud Storage bucket behavior:
 
 - The ingest route writes JSON batches to `gs://$GCS_BUCKET/cyvix/ingest/...`
 
+### BigQuery Seed Script
+
+Use this when you want the scenario baseline table populated immediately:
+
+```bash
+npm run seed:bigquery
+```
+
+What it does:
+
+- Seeds the `cyvix_demo.scenario_baselines` table from the local scenario catalog.
+- Creates the dataset and table if they do not already exist.
+- Inserts flattened scenario rows with risk, confidence, summaries, and trace fields.
+
+Expected environment:
+
+- `GCP_PROJECT_ID` or `GOOGLE_CLOUD_PROJECT`
+- `BIGQUERY_DATASET`
+- `BIGQUERY_TABLE`
+- `BIGQUERY_LOCATION` or `GCP_REGION`
+
+### Demo Initializer
+
+Use this when you want the full demo bundle initialized in one pass:
+
+```bash
+npm run demo:init
+```
+
+What it does:
+
+- Seeds BigQuery with the scenario baseline rows.
+- Writes a demo manifest and seed bundle to Cloud Storage when `GCS_BUCKET` is configured.
+- Mirrors the status information that the in-app demo panel shows through `/api/demo`.
+
+### GKE Deployment Path
+
+The app is also container-ready for GKE:
+
+- `Dockerfile` builds the Next.js app into a production container.
+- `k8s/gke/cyvix.yaml` contains the namespace, deployment, and service.
+
+Suggested path:
+
+```bash
+gcloud builds submit --tag gcr.io/$PROJECT_ID/cyvix:latest .
+kubectl apply -f k8s/gke/cyvix.yaml
+kubectl -n cyvix rollout status deployment/cyvix
+```
+
 ## Demo Notes
 
 - Switch between scenarios to show different city conditions.
 - Ask a natural-language question to trigger the decision engine.
 - Use the sidebar to jump between product sections.
 - Show the agent trace, tool calls, and counterfactual to explain how the system works.
+- Use the Looker-style panel to show operational status and the demo initializer.
 - Point to the Google Cloud mapping to demonstrate that the solution is grounded in real platform primitives.

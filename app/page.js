@@ -13,6 +13,8 @@ import {
   Bot,
   Cloud,
   CloudCog,
+  Database,
+  ExternalLink,
   Layers3,
   LineChart,
   MapPinned,
@@ -20,6 +22,7 @@ import {
   Radar,
   ShieldCheck,
   Sparkles,
+  ServerCog,
   Workflow,
   Zap
 } from "lucide-react";
@@ -108,6 +111,12 @@ const serviceCards = [
     copy: "Executive-ready dashboards that keep leaders aligned on what changed and why.",
     icon: LineChart,
     color: "bg-[#b8f2c7]"
+  },
+  {
+    name: "Google Kubernetes Engine",
+    copy: "Containerized deployment path for teams that want a managed cluster behind the app.",
+    icon: ServerCog,
+    color: "bg-[#b1d9ff]"
   }
 ];
 
@@ -489,6 +498,11 @@ export default function Page() {
   const [queryDraft, setQueryDraft] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState("");
   const [payload, setPayload] = useState(() => getFallbackPayload(scenarios[0]));
+  const [platformStatus, setPlatformStatus] = useState(null);
+  const [demoInitState, setDemoInitState] = useState({
+    loading: false,
+    result: null
+  });
 
   const scenario = scenarios[activeScenarioIndex];
   const active = payload ?? getFallbackPayload(scenario);
@@ -569,6 +583,30 @@ export default function Page() {
     };
   }, [scenario.id, scenario.ward, submittedQuery]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadPlatformStatus() {
+      try {
+        const response = await fetch("/api/platform");
+        const json = await response.json();
+        if (!cancelled) {
+          setPlatformStatus(json);
+        }
+      } catch {
+        if (!cancelled) {
+          setPlatformStatus(null);
+        }
+      }
+    }
+
+    loadPlatformStatus();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   function handleQuestion(e) {
     e.preventDefault();
     const trimmed = queryDraft.trim();
@@ -577,6 +615,48 @@ export default function Page() {
       setAutoRotate(false);
     }
   }
+
+  async function handleDemoInit() {
+    setDemoInitState({ loading: true, result: null });
+
+    try {
+      const response = await fetch("/api/demo", { method: "POST" });
+      const json = await response.json();
+      setDemoInitState({ loading: false, result: json.result ?? json });
+    } catch {
+      setDemoInitState({
+        loading: false,
+        result: {
+          manifest: null,
+          bigquery: { connected: false, source: "local-fallback" },
+          storage: { connected: false, source: "local-fallback" }
+        }
+      });
+    }
+  }
+
+  const lookerStatus = platformStatus?.status?.looker ?? {
+    live: false,
+    title: "Civic operations review",
+    dashboardUrl: null,
+    status: "preview"
+  };
+  const gkeStatus = platformStatus?.gke ?? {
+    live: false,
+    clusterName: "cyvix-gke",
+    location: "asia-south1",
+    namespace: "cyvix",
+    image: "gcr.io/project/cyvix:latest",
+    manifestPath: "k8s/gke/cyvix.yaml",
+    commands: []
+  };
+  const platformLive = platformStatus?.status?.live ?? {
+    cloudRun: true,
+    bigquery: false,
+    storage: false,
+    looker: false,
+    gke: false
+  };
 
   return (
     <div className="relative min-h-screen overflow-hidden cursor-none bg-[#f4efe6] text-ink">
@@ -1165,6 +1245,268 @@ export default function Page() {
             {serviceCards.map((service) => (
               <ServiceBrick key={service.name} {...service} />
             ))}
+          </div>
+
+          <div className="mt-8 grid gap-5 lg:grid-cols-[0.58fr_0.42fr]">
+            <motion.article
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.25 }}
+              className="rounded-[32px] border-[3px] border-black bg-[#f7f2e8] p-5 shadow-[12px_12px_0_0_#111] sm:p-6"
+            >
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.22em] text-ink-muted">
+                    Looker-style embed
+                  </p>
+                  <h3 className="mt-2 font-[family-name:var(--font-display)] text-4xl font-black tracking-[-0.06em] text-ink">
+                    {lookerStatus.title}
+                  </h3>
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-ink-soft">
+                    {lookerStatus.live
+                      ? "Connected to a live dashboard URL and surfaced in the same product shell."
+                      : "A production-style embed shell keeps the leadership view concrete even before a live Looker embed is configured."}
+                  </p>
+                </div>
+                <div
+                  className={`rounded-full border-[3px] border-black px-4 py-2 text-xs font-black uppercase tracking-[0.18em] shadow-[4px_4px_0_0_#111] ${
+                    lookerStatus.live ? "bg-[#a7f3d0] text-ink" : "bg-[#ffe98a] text-ink"
+                  }`}
+                >
+                  {lookerStatus.status === "connected" ? "Connected" : "Preview"}
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                {[
+                  { label: "Dashboard", value: lookerStatus.title },
+                  { label: "Embed", value: lookerStatus.live ? "Live URL" : "Shell preview" },
+                  { label: "Data plane", value: platformLive.bigquery ? "BigQuery live" : "BigQuery ready" }
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className="rounded-[22px] border-[3px] border-black bg-white p-4 shadow-[6px_6px_0_0_#111]"
+                  >
+                    <p className="text-xs font-black uppercase tracking-[0.2em] text-ink-muted">
+                      {item.label}
+                    </p>
+                    <p className="mt-2 text-sm font-black tracking-[-0.03em] text-ink">
+                      {item.value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-4 rounded-[28px] border-[3px] border-black bg-white p-4 shadow-[8px_8px_0_0_#111]">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.2em] text-ink-faint">
+                      Operational frame
+                    </p>
+                    <p className="mt-1 text-sm leading-6 text-ink-soft">
+                      Ward-level summaries, trend deltas, and a current decision packet.
+                    </p>
+                  </div>
+                  <MotionButton
+                    variant="secondary"
+                    className="px-4 py-2 text-xs"
+                    onClick={handleDemoInit}
+                    disabled={demoInitState.loading}
+                  >
+                    {demoInitState.loading ? "Initializing..." : "Initialize demo data"}
+                    <Database className="h-4 w-4" />
+                  </MotionButton>
+                </div>
+
+                <div className="mt-4 grid gap-3 md:grid-cols-[0.36fr_0.64fr]">
+                  <div className="space-y-3">
+                    {[
+                      ["Fusion score", `${activeDecision.score.fusion}%`],
+                      ["Confidence", `${activeDecision.score.confidence}%`],
+                      ["Projected risk", activeDecision.score.projectedRisk],
+                      ["Response window", activeRecommendation.responseWindow]
+                    ].map(([label, value]) => (
+                      <div
+                        key={label}
+                        className="rounded-[20px] border-[3px] border-black bg-[#f7f2e8] p-4 shadow-[5px_5px_0_0_#111]"
+                      >
+                        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-ink-muted">
+                          {label}
+                        </p>
+                        <p className="mt-2 text-lg font-black tracking-[-0.04em] text-ink">
+                          {value}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="rounded-[28px] border-[3px] border-black bg-[#0e1b2b] p-4 text-white shadow-[8px_8px_0_0_#111]">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-black uppercase tracking-[0.22em] text-white/60">
+                          Leadership view
+                        </p>
+                        <h4 className="mt-1 text-xl font-black tracking-[-0.04em]">
+                          Dashboard snapshot
+                        </h4>
+                      </div>
+                      <div className="rounded-full border-[3px] border-white/20 bg-white/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-white">
+                        {platformLive.bigquery ? "BigQuery live" : "Demo source"}
+                      </div>
+                    </div>
+
+                    <div className="mt-4 grid grid-cols-12 gap-2">
+                      {scenario.chart.slice(-8).map((value, index) => (
+                        <div key={`${scenario.id}-${index}`} className="col-span-1 flex h-32 items-end">
+                          <div
+                            className="w-full rounded-t-full border-[2px] border-white/70 bg-[#8bd3ff]"
+                            style={{ height: `${Math.max(24, value * 100)}%` }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="mt-4 rounded-[22px] border-[2px] border-white/15 bg-white/6 p-3">
+                      <p className="text-[11px] font-black uppercase tracking-[0.18em] text-white/60">
+                        Embed status
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-white/85">
+                        {lookerStatus.live
+                          ? "A dashboard URL is available and can be opened directly from the shell."
+                          : "This panel mirrors a real Looker embed surface, including status, filters, and operational KPIs."}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {[
+                    platformLive.bigquery ? "BigQuery live" : "BigQuery ready",
+                    platformLive.storage ? "Cloud Storage live" : "Cloud Storage ready",
+                    platformLive.cloudRun ? "Cloud Run live" : "Cloud Run ready",
+                    lookerStatus.live ? "Looker linked" : "Looker preview"
+                  ].map((chip) => (
+                    <span
+                      key={chip}
+                      className="rounded-full border-[3px] border-black bg-[#a7f3d0] px-3 py-2 text-xs font-black uppercase tracking-[0.14em] shadow-[4px_4px_0_0_#111]"
+                    >
+                      {chip}
+                    </span>
+                  ))}
+                </div>
+
+                {demoInitState.result ? (
+                  <div className="mt-4 rounded-[24px] border-[3px] border-black bg-[#ffe98a] p-4 shadow-[6px_6px_0_0_#111]">
+                    <p className="text-xs font-black uppercase tracking-[0.2em] text-ink-muted">
+                      Demo initializer
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-ink-soft">
+                      Seeded {demoInitState.result.manifest?.scenarioCount ?? 0} scenarios,{" "}
+                      {demoInitState.result.bigquery?.connected ? "wrote rows to BigQuery" : "kept the seed local"},{" "}
+                      and {demoInitState.result.storage?.connected ? "stored the demo bundle in Cloud Storage." : "left the bundle local."}
+                    </p>
+                  </div>
+                ) : null}
+
+                {lookerStatus.dashboardUrl ? (
+                  <a
+                    href={lookerStatus.dashboardUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-4 inline-flex items-center gap-2 rounded-full border-[3px] border-black bg-[#2f6bff] px-4 py-3 text-sm font-black uppercase tracking-[0.16em] text-white shadow-[6px_6px_0_0_#111]"
+                  >
+                    Open dashboard
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                ) : null}
+              </div>
+            </motion.article>
+
+            <motion.article
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.25 }}
+              className="rounded-[32px] border-[3px] border-black bg-[#8bd3ff] p-5 shadow-[12px_12px_0_0_#111] sm:p-6"
+            >
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.22em] text-ink-muted">
+                    GKE deployment path
+                  </p>
+                  <h3 className="mt-2 font-[family-name:var(--font-display)] text-4xl font-black tracking-[-0.06em] text-ink">
+                    Container path
+                  </h3>
+                  <p className="mt-2 text-sm leading-6 text-ink-soft">
+                    The same app ships cleanly as a container with a namespace, deployment, and service manifest.
+                  </p>
+                </div>
+                <div className={`rounded-full border-[3px] border-black px-4 py-2 text-xs font-black uppercase tracking-[0.18em] shadow-[4px_4px_0_0_#111] ${gkeStatus.live ? "bg-[#a7f3d0]" : "bg-white"}`}>
+                  {gkeStatus.live ? "Cluster linked" : "Path ready"}
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-3">
+                {[
+                  { label: "Cluster", value: gkeStatus.clusterName },
+                  { label: "Region", value: gkeStatus.location },
+                  { label: "Namespace", value: gkeStatus.namespace },
+                  { label: "Image", value: gkeStatus.image }
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className="rounded-[22px] border-[3px] border-black bg-white p-4 shadow-[6px_6px_0_0_#111]"
+                  >
+                    <p className="text-[11px] font-black uppercase tracking-[0.18em] text-ink-muted">
+                      {item.label}
+                    </p>
+                    <p className="mt-2 break-all text-sm font-black tracking-[-0.03em] text-ink">
+                      {item.value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-4 rounded-[28px] border-[3px] border-black bg-[#f7f2e8] p-4 shadow-[8px_8px_0_0_#111]">
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-ink-muted">
+                  Deployment steps
+                </p>
+                <ol className="mt-3 space-y-3">
+                  <li className="rounded-[18px] border-[3px] border-black bg-white p-3 shadow-[4px_4px_0_0_#111]">
+                    <p className="text-[11px] font-black uppercase tracking-[0.18em] text-ink-muted">
+                      1. Build
+                    </p>
+                    <p className="mt-1 text-sm leading-6 text-ink-soft">
+                      {platformStatus?.gke?.buildCommand || `gcloud builds submit --tag ${gkeStatus.image} .`}
+                    </p>
+                  </li>
+                  <li className="rounded-[18px] border-[3px] border-black bg-white p-3 shadow-[4px_4px_0_0_#111]">
+                    <p className="text-[11px] font-black uppercase tracking-[0.18em] text-ink-muted">
+                      2. Deploy
+                    </p>
+                    <p className="mt-1 text-sm leading-6 text-ink-soft">
+                      kubectl apply -f {gkeStatus.manifestPath}
+                    </p>
+                  </li>
+                  <li className="rounded-[18px] border-[3px] border-black bg-white p-3 shadow-[4px_4px_0_0_#111]">
+                    <p className="text-[11px] font-black uppercase tracking-[0.18em] text-ink-muted">
+                      3. Verify
+                    </p>
+                    <p className="mt-1 text-sm leading-6 text-ink-soft">
+                      kubectl -n {gkeStatus.namespace} rollout status deployment/cyvix
+                    </p>
+                  </li>
+                </ol>
+              </div>
+
+              <div className="mt-4 rounded-[24px] border-[3px] border-black bg-[#2f6bff] p-4 text-white shadow-[8px_8px_0_0_#111]">
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-white/70">
+                  What this path gives you
+                </p>
+                <p className="mt-2 text-sm leading-6 text-white/85">
+                  The app is container-ready, the manifest is checked in, and the same API routes can run on a managed cluster when you want more control than Cloud Run.
+                </p>
+              </div>
+            </motion.article>
           </div>
 
           <div className="mt-8 grid gap-4 lg:grid-cols-[0.42fr_0.58fr]">
